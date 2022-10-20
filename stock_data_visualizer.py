@@ -28,10 +28,14 @@ while(True):
     print("\nStock Data Visualizer")
     print("----------------------")
 
+    # Ask the user for the stock symbol they would like to visualize
     user_symbol = input("Enter the stock symbol you are looking for: ")
     print()
+    # Pass the symbol to the queryAPI function
+    # this will not be necessary down the road because everything will be passed at once
     queryAPI(functionType, user_symbol, outputSize, key)
 
+    # Check if the user would like to visualize another stock
     user_continue = input("Would you like to view more stock data? Press 'y' to continue: ")
     if(user_continue == "y"):
         continue

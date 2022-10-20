@@ -22,3 +22,18 @@ def queryAPI(functionType, symbol, outputSize, key):
     data = response.json()
     # Return data
     return data
+
+while(True):
+
+    print("\nStock Data Visualizer")
+    print("----------------------")
+
+    user_symbol = input("Enter the stock symbol you are looking for: ")
+    print()
+    queryAPI(functionType, user_symbol, outputSize, key)
+
+    user_continue = input("Would you like to view more stock data? Press 'y' to continue: ")
+    if(user_continue == "y"):
+        continue
+    else:
+        break

@@ -36,7 +36,7 @@ def chartSelection():
     # Call userInput function
     selection = userInput(prompt, inputText)
     # If user selection is not a given option, prompt user to try again
-    while(selection != "1" or selection != "2"):
+    while(selection != "1" and selection != "2"):
         selection = userInput("", invalidInputText)
     if(selection == "1"):
         return "line"
@@ -51,7 +51,7 @@ def timeSeries():
     inputText = "Enter the time series option (1, 2, 3, 4): "
     selection = userInput(prompt, inputText)
     # If user selection is not a given option, prompt user to try again
-    while(selection != "1" or selection != "2" or selection != "3" or selection != "4"):
+    while(selection != "1" and selection != "2" and selection != "3" and selection != "4"):
         selection = userInput("", invalidInputText)
     if(selection == "1"):
         return "TIME_SERIES_INTRADAY"
@@ -61,6 +61,82 @@ def timeSeries():
         return "TIME_SERIES_WEEKLY"
     if(selection == "4"):
         return "TIME_SERIES_MONTHLY"
+
+# Function to parse data 
+# We will need to replace the second column ["2022-10-20"] with a variable stemming from date selection functions
+def parseData(data, timeSeries):
+    open = data[timeSeries]["2022-10-20"]["1. open"]
+    high = data[timeSeries]["2022-10-20"]["2. high"]
+    low = data[timeSeries]["2022-10-20"]["3. low"]
+    close = data[timeSeries]["2022-10-20"]["4. close"]
+    return open, high, low, close
+    
+# Function to assign time series for JSON
+def jsonTime(timeOption):
+    if(timeOption == "TIME_SERIES_INTRADAY"):
+        return "Time Series (5min)"
+    elif(timeOption == "TIME_SERIES_DAILY"):
+        return "Time Series (Daily)"
+    elif(timeOption == "TIME_SERIES_WEEKLY"):
+        return "Weekly Time Series"
+    elif(timeOption == "TIME_SERIES_MONTHLY"):
+        return "Monthly Time Series"
+
+# Function to index data into dictionary
+def indexData(data, timeSeries):
+    # Variable for iterating dictionary
+    i = 0
+    # Dictionary for indexing data
+    graphData = {
+        "open": {},
+        "high": {},
+        "low": {},
+        "close": {}
+    }
+    # Iterates data and indexes it in dictionary
+    for dates in data[timeSeries]:
+        open, high, low, close = parseData(data, timeSeries)
+        graphData["open"][i] = open
+        graphData["high"][i] = high
+        graphData["low"][i] = low
+        graphData["close"][i] = close
+        i += 1
+    return graphData
+
+# Function to build chart 
+def buildChart(graphData, chartType, data, timeSeries):
+    # Variable for iterating dictionary
+    i = 0
+    # List for adding values to graphs
+    list = []
+    # If line chart is selected
+    if(chartType == "line"):
+        # Create line chart
+        lineChart = pygal.Line()
+        # For all data entries, iterate and add to list
+        for dates in data[timeSeries]:
+            list.append(float(graphData["open"][i]))
+            i += 1
+        # Add elements to graph
+        lineChart.add("Open", list)
+        # Render graph in browser
+        lineChart.render_in_browser()
+    # If bar chart is selected
+    if (chartType == "bar"):
+        # Create bar chart
+        barChart = pygal.Bar()
+        # For all data entries, iterate and add to list
+        for dates in data[timeSeries]:
+            list.append(float(graphData["open"][i]))
+            i += 1
+        # Add elements to graph
+        barChart.add("Open", list)
+        # Render graph in browser
+        barChart.render_in_browser()
+    # Error handling
+    elif(chartType != "line" and chartType != "bar"):
+        # Error message
+        print("ERROR")
 
 # Function to get data from the API
 def queryAPI(functionType, symbol, outputSize, key):
@@ -89,16 +165,25 @@ while(run == True):
     
     # Call function for time series selection and assign value
     functionType = timeSeries()
+    # Assign correct format for JSON based on user selection
+    jTime = jsonTime(functionType)
     
     # Pass the symbol to the queryAPI function
     # this will not be necessary down the road because everything will be passed at once
-    queryAPI(functionType, user_symbol, outputSize, key)
-
+    data = queryAPI(functionType, user_symbol, outputSize, key)
+    # Call function to parse and index data for graph
+    # ***Uncomment after time selection functions are completed***
+    #graphData = indexData(data, jTime)
+    # Builds chart and opens it in browser
+    # ***Uncomment after time selection functions are completed***
+    #buildChart(graphData, chartOption, data, jTime)
     # Check if the user would like to visualize another stock
     user_continue = input("Would you like to view more stock data? Press 'y' to continue: ")
     if(user_continue == "y"):
         # Repeat program by iterating through while loop again
         run = True
+        # Empty dictionary
+        dict = {}
     else:
         # End program
         run = False

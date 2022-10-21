@@ -2,12 +2,6 @@ import json
 import requests
 import pygal
 
-# Function to query API
-# Sybmol will be provided by user input from its respective function
-# I tested this function using test values and it does work 
-# It will return ALL information from the last 20 years in JSON format 
-# We can build a function to parse the information into a usable format after completing other modules
-
 # Global variable for while loop
 run = True
     
@@ -168,7 +162,6 @@ while(run == True):
     jTime = jsonTime(functionType)
     
     # Pass the symbol to the queryAPI function
-    # this will not be necessary down the road because everything will be passed at once
     data = queryAPI(functionType, user_symbol, outputSize, key)
     # Call function to parse and index data for graph
     # ***Uncomment after time selection functions are completed***

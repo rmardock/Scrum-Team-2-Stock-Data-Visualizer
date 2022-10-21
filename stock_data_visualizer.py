@@ -10,13 +10,6 @@ import pygal
 
 # Global variable for while loop
 run = True
-
-# Global variable for invalid selection input text
-invalidInputText = "Invalid option! Enter the number of the option you want to select: "
-
-# Global variables for function, output size, and API key parameters
-outputSize = "full"
-key = "DLEZPCELNFARX2UF"
     
 # Function to to supply prompt and get user input
 def userInput(prompt, inputText):
@@ -28,7 +21,7 @@ def userInput(prompt, inputText):
     return selection
 
 # Function to get user input for chart type
-def chartSelection():
+def chartSelection(invalidInputText):
     # User input prompt variable
     prompt = "Select the chart you would like from the following options:\n1. Line Chart\n2. Bar Chart\n"
     # Input text variable
@@ -44,7 +37,7 @@ def chartSelection():
         return "bar"
     
 # Function to get user input for time series selection
-def timeSeries():
+def timeSeries(invalidInputText):
     # User input prompt variable
     prompt = "Select the Time Series of the chart you wan to generate:\n1. Intraday\n2. Daily\n3. Weekly\n4. Monthly\n"
     # Input Text variable 
@@ -151,6 +144,12 @@ def queryAPI(functionType, symbol, outputSize, key):
 
 # While loop to run program and allow for repetition
 while(run == True):
+    # Variable for invalid selection input text
+    invalidInputText = "Invalid option! Enter the number of the option you want to select: "
+    
+    # Variables for output size and API key parameters
+    outputSize = "full"
+    key = "DLEZPCELNFARX2UF"
 
     print("\nStock Data Visualizer")
     print("----------------------")
@@ -161,10 +160,10 @@ while(run == True):
     
     # Call function for chart selection and assign value ("line" or "bar")
     # This value will be used to open the correct chart in the browser
-    chartOption = chartSelection()
+    chartOption = chartSelection(invalidInputText)
     
     # Call function for time series selection and assign value
-    functionType = timeSeries()
+    functionType = timeSeries(invalidInputText)
     # Assign correct format for JSON based on user selection
     jTime = jsonTime(functionType)
     

@@ -2,6 +2,7 @@ import json
 import requests
 import pygal
 import datetime
+from dateutil.relativedelta import relativedelta
 
 # Global variable for while loop
 run = True
@@ -68,10 +69,7 @@ def startDate():
     while True:
         try:
             # formatting the date using strptime() function
-            dateObject = datetime.datetime.strptime(selection, date_format)
-            # formatting the dateObject to exclude time
-            dateObjectWithoutTime = dateObject.strftime(date_format)
-            print(dateObjectWithoutTime)
+            dateObject = datetime.datetime.strptime(selection, date_format).date()
             # If the date validation goes wrong
         except ValueError:
             # printing the appropriate text if ValueError occurs
@@ -80,7 +78,7 @@ def startDate():
         else:
             #No error, break loop
             break
-    return dateObjectWithoutTime
+    return dateObject
 
 # Function to get user input for end date
 def endDate():
@@ -91,10 +89,8 @@ def endDate():
     while True:
         try:
             # formatting the date using strptime() function
-            dateObject = datetime.datetime.strptime(selection, date_format)
-            # formatting the dateObject to exclude time
-            dateObjectWithoutTime = dateObject.strftime(date_format)
-            print(dateObjectWithoutTime)
+            dateObject = datetime.datetime.strptime(selection, date_format).date()
+            print(dateObject)
             # If the date validation goes wrong
         except ValueError:
             # printing the appropriate text if ValueError occurs
@@ -103,15 +99,22 @@ def endDate():
         else:
             # No error, break loop
             break
-    return dateObjectWithoutTime
+    return dateObject
 
 # Function to parse data
-# We will need to replace the second column ["2022-10-20"] with a variable stemming from date selection functions
-def parseData(data, timeSeries):
-    open = data[timeSeries]["2022-10-20"]["1. open"]
-    high = data[timeSeries]["2022-10-20"]["2. high"]
-    low = data[timeSeries]["2022-10-20"]["3. low"]
-    close = data[timeSeries]["2022-10-20"]["4. close"]
+def parseData(data, timeSeries, date):
+    date = str(date)
+    try:
+        open = data[timeSeries][date]["1. open"]
+        high = data[timeSeries][date]["2. high"]
+        low = data[timeSeries][date]["3. low"]
+        close = data[timeSeries][date]["4. close"]
+    # If no data in entry, assign None values
+    except KeyError:
+        open = None
+        close = None
+        low = None
+        high = None
     return open, high, low, close
 
 
@@ -126,58 +129,86 @@ def jsonTime(timeOption):
     elif (timeOption == "TIME_SERIES_MONTHLY"):
         return "Monthly Time Series"
 
-
-# Function to index data into dictionary
-def indexData(data, timeSeries):
-    # Variable for iterating dictionary
-    i = 0
-    # Dictionary for indexing data
-    graphData = {
-        "open": {},
-        "high": {},
-        "low": {},
-        "close": {}
-    }
-    # Iterates data and indexes it in dictionary
-    for dates in data[timeSeries]:
-        open, high, low, close = parseData(data, timeSeries)
-        graphData["open"][i] = open
-        graphData["high"][i] = high
-        graphData["low"][i] = low
-        graphData["close"][i] = close
-        i += 1
-    return graphData
-
-
 # Function to build chart
-def buildChart(graphData, chartType, data, timeSeries):
+def buildChart(user_symbol, chartType, data, timeSeries, startDate, endDate):
     # Variable for iterating dictionary
     i = 0
-    # List for adding values to graphs
-    list = []
+    
+    # Variables for assigning start and end dates to graph title
+    tmpStart = startDate
+    tmpEnd = endDate
+    
+    # Variable for graph title assignment
+    graphTitle = 'Stock Data for ' + user_symbol + ": " + str(tmpStart) + " to " + str(tmpEnd)
+    
+    # Lists for adding values to graphs
+    openList = []
+    closeList = []
+    highList = []
+    lowList = []
+    dateList = []
+    # Delta time for date iteration
+    if(timeSeries == "Time Series (Daily)" or timeSeries == "Weekly Time Series" or timeSeries == "Monthy Time Series"):
+        delta = datetime.timedelta(days=1)
+    elif(timeSeries == "Time Series (5min)"):
+        startDate = datetime.datetime.strptime(str(startDate) + ' 00:00:00', '%Y-%m-%d %H:%M:%S')
+        endDate = datetime.datetime.strptime(str(endDate) + ' 00:00:00', '%Y-%m-%d %H:%M:%S')
+        delta = datetime.timedelta(minutes=5)
     # If line chart is selected
     if (chartType == "line"):
         # Create line chart
         lineChart = pygal.Line()
         # For all data entries, iterate and add to list
-        for dates in data[timeSeries]:
-            list.append(float(graphData["open"][i]))
-            i += 1
+        while(startDate <= endDate):
+            open, high, low, close = parseData(data, timeSeries, startDate)
+            # If no data available for date, skip
+            if(open == None and high == None and low == None and close == None):
+                startDate += delta
+                continue
+            # Add data to lists
+            openList.append(float(open))
+            closeList.append(float(close))
+            highList.append(float(high))
+            lowList.append(float(low))
+            dateList.append(startDate)
+            # Increment datetime
+            startDate += delta
         # Add elements to graph
-        lineChart.add("Open", list)
+        lineChart.add("Open", openList)
+        lineChart.add("Close", closeList)
+        lineChart.add("High", highList)
+        lineChart.add("Low", lowList)
         # Render graph in browser
+        lineChart.title = graphTitle
+        lineChart.x_labels = dateList
         lineChart.render_in_browser()
     # If bar chart is selected
     if (chartType == "bar"):
         # Create bar chart
         barChart = pygal.Bar()
         # For all data entries, iterate and add to list
-        for dates in data[timeSeries]:
-            list.append(float(graphData["open"][i]))
-            i += 1
+        while(startDate <= endDate):
+            open, high, low, close = parseData(data, timeSeries, startDate)
+            # If no data available for date, skip
+            if(open == None and high == None and low == None and close == None):
+                startDate += delta
+                continue
+            # Add data to lists
+            openList.append(float(open))
+            closeList.append(float(close))
+            highList.append(float(high))
+            lowList.append(float(low))
+            dateList.append(startDate)
+            # Increment datetime
+            startDate += delta
         # Add elements to graph
-        barChart.add("Open", list)
+        barChart.add("Open", openList)
+        barChart.add("Close", closeList)
+        barChart.add("High", highList)
+        barChart.add("Low", lowList)
         # Render graph in browser
+        barChart.title = graphTitle
+        barChart.x_labels = dateList
         barChart.render_in_browser()
     # Error handling
     elif (chartType != "line" and chartType != "bar"):
@@ -188,7 +219,12 @@ def buildChart(graphData, chartType, data, timeSeries):
 # Function to get data from the API
 def queryAPI(functionType, symbol, outputSize, key):
     # URL construction for API request
-    url = "https://www.alphavantage.co/query?function=" + functionType + "&symbol=" + symbol + "&outputsize=" + outputSize + "&apikey=" + key
+    # If time series is intraday, assign alternate url for correct API request
+    if(functionType == "TIME_SERIES_INTRADAY"):
+        url = "https://www.alphavantage.co/query?function=" + functionType + "&symbol=" + symbol +"&interval=5min&outputsize=" + outputSize + "&apikey=" + key
+    # If time series is not intraday, assign this URL
+    else:
+        url = "https://www.alphavantage.co/query?function=" + functionType + "&symbol=" + symbol + "&outputsize=" + outputSize + "&apikey=" + key
     # Query API
     response = requests.request("GET", url)
     # Format data as JSON object
@@ -211,7 +247,6 @@ while (run == True):
 
     # Ask the user for the stock symbol they would like to visualize
     user_symbol = input("Enter the stock symbol you are looking for: ")
-    print()
 
     # Call function for chart selection and assign value ("line" or "bar")
     # This value will be used to open the correct chart in the browser
@@ -237,12 +272,10 @@ while (run == True):
 
     # Pass the symbol to the queryAPI function
     data = queryAPI(functionType, user_symbol, outputSize, key)
-    # Call function to parse and index data for graph
-    # ***Uncomment after time selection functions are completed***
-    #graphData = indexData(data, jTime)
+
     # Builds chart and opens it in browser
-    # ***Uncomment after time selection functions are completed***
-    #buildChart(graphData, chartOption, data, jTime)
+    buildChart(user_symbol, chartOption, data, jTime, startTime, endTime)
+    
     # Check if the user would like to visualize another stock
     user_continue = input("Would you like to view more stock data? Press 'y' to continue: ")
     if (user_continue == "y"):

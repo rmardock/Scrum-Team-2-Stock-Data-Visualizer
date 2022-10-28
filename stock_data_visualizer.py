@@ -7,9 +7,6 @@ from dateutil.relativedelta import relativedelta
 # Global variable for while loop
 run = True
 
-# Global variable for date error prompt
-dateErrorPrompt = "\nIncorrect date format. Enter the start Date in YYYY-MM-DD format"
-
 # Function to to supply prompt and get user input
 def userInput(prompt, inputText):
     # Prompt user
@@ -35,7 +32,6 @@ def chartSelection(invalidInputText):
     elif (selection == "2"):
         return "bar"
 
-
 # Function to get user input for time series selection
 def timeSeries(invalidInputText):
     # User input prompt variable
@@ -56,7 +52,7 @@ def timeSeries(invalidInputText):
         return "TIME_SERIES_MONTHLY"
 
 # Function to get user input for start date
-def startDate():
+def startDate(dateErrorPrompt):
     date_format = '%Y-%m-%d'
     inputText = "Enter the start Date (YYYY-MM-DD): "
     selection = userInput("", inputText)
@@ -75,7 +71,7 @@ def startDate():
     return dateObject
 
 # Function to get user input for end date
-def endDate():
+def endDate(dateErrorPrompt):
     date_format = '%Y-%m-%d'
     inputText = "Enter the end Date (YYYY-MM-DD): "
     selection = userInput("", inputText)
@@ -110,7 +106,6 @@ def parseData(data, timeSeries, date):
         low = None
         high = None
     return open, high, low, close
-
 
 # Function to assign time series for JSON
 def jsonTime(timeOption):
@@ -225,12 +220,13 @@ def queryAPI(functionType, symbol, outputSize, key):
     # Return data
     return data
 
-
 # While loop to run program and allow for repetition
 while (run == True):
     # Variable for invalid selection input text
     invalidInputText = "Invalid option! Enter the number of the option you want to select: "
     invalidInputDatesFormat = "Invalid date! Enter the date in YYYY-MM-DD format:  "
+    # Variable for date error prompt
+    dateErrorPrompt = "\nIncorrect date format. Enter the start Date in YYYY-MM-DD format"
     
     # Variables for output size and API key parameters
     outputSize = "full"
@@ -251,16 +247,16 @@ while (run == True):
     functionType = timeSeries(invalidInputText)
 
     # Call function for start date
-    startTime = startDate()
+    startTime = startDate(dateErrorPrompt)
 
     # Call function for end date
-    endTime = endDate()
+    endTime = endDate(dateErrorPrompt)
 
     # Checks to see if start time value is after endtime and resets if true
     while (startTime >= endTime):
         print("Start date cannot be later than or equal to End date. Enter the dates again.")
-        startTime = startDate()
-        endTime = endDate()
+        startTime = startDate(dateErrorPrompt)
+        endTime = endDate(dateErrorPrompt)
 
     # Assign correct format for JSON based on user selection
     jTime = jsonTime(functionType)

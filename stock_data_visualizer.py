@@ -7,19 +7,14 @@ from dateutil.relativedelta import relativedelta
 # Global variable for while loop
 run = True
 
+# Global variable for date error prompt
+dateErrorPrompt = "\nIncorrect date format. Enter the start Date in YYYY-MM-DD format"
 
 # Function to to supply prompt and get user input
 def userInput(prompt, inputText):
     # Prompt user
     print(prompt)
     # Get user input
-    selection = input(inputText)
-    # Return user input
-    return selection
-
-# Function to get user input for dates
-def userInputDates(inputText):
-    # Get user input from dates function
     selection = input(inputText)
     # Return user input
     return selection
@@ -44,7 +39,7 @@ def chartSelection(invalidInputText):
 # Function to get user input for time series selection
 def timeSeries(invalidInputText):
     # User input prompt variable
-    prompt = "Select the Time Series of the chart you wan to generate:\n1. Intraday\n2. Daily\n3. Weekly\n4. Monthly\n"
+    prompt = "Select the Time Series of the chart you want to generate:\n1. Intraday\n2. Daily\n3. Weekly\n4. Monthly\n"
     # Input Text variable
     inputText = "Enter the time series option (1, 2, 3, 4): "
     selection = userInput(prompt, inputText)
@@ -64,7 +59,7 @@ def timeSeries(invalidInputText):
 def startDate():
     date_format = '%Y-%m-%d'
     inputText = "Enter the start Date (YYYY-MM-DD): "
-    selection = userInputDates(inputText)
+    selection = userInput("", inputText)
     # using try-except blocks for handling the exceptions
     while True:
         try:
@@ -73,8 +68,7 @@ def startDate():
             # If the date validation goes wrong
         except ValueError:
             # printing the appropriate text if ValueError occurs
-            print("Incorrect date format. Enter the start Date in YYYY-MM-DD format: ")
-            selection = userInputDates(inputText)
+            selection = userInput(dateErrorPrompt, inputText)
         else:
             #No error, break loop
             break
@@ -84,18 +78,16 @@ def startDate():
 def endDate():
     date_format = '%Y-%m-%d'
     inputText = "Enter the end Date (YYYY-MM-DD): "
-    selection = userInputDates(inputText)
+    selection = userInput("", inputText)
     # using try-except blocks for handling the exceptions
     while True:
         try:
             # formatting the date using strptime() function
             dateObject = datetime.datetime.strptime(selection, date_format).date()
-            print(dateObject)
             # If the date validation goes wrong
         except ValueError:
             # printing the appropriate text if ValueError occurs
-            print("Incorrect date format. Enter the end Date in YYYY-MM-DD format: ")
-            selection = userInputDates(inputText)
+            selection = userInput(dateErrorPrompt, inputText)
         else:
             # No error, break loop
             break
@@ -103,8 +95,10 @@ def endDate():
 
 # Function to parse data
 def parseData(data, timeSeries, date):
+    # Cast date as string
     date = str(date)
     try:
+        # Assign data values to variables
         open = data[timeSeries][date]["1. open"]
         high = data[timeSeries][date]["2. high"]
         low = data[timeSeries][date]["3. low"]
@@ -148,12 +142,12 @@ def buildChart(user_symbol, chartType, data, timeSeries, startDate, endDate):
     lowList = []
     dateList = []
     # Delta time for date iteration
-    if(timeSeries == "Time Series (Daily)" or timeSeries == "Weekly Time Series" or timeSeries == "Monthy Time Series"):
-        delta = datetime.timedelta(days=1)
-    elif(timeSeries == "Time Series (5min)"):
+    if(timeSeries == "Time Series (5min)"):
         startDate = datetime.datetime.strptime(str(startDate) + ' 00:00:00', '%Y-%m-%d %H:%M:%S')
         endDate = datetime.datetime.strptime(str(endDate) + ' 00:00:00', '%Y-%m-%d %H:%M:%S')
         delta = datetime.timedelta(minutes=5)
+    else:
+        delta = datetime.timedelta(days=1)
     # If line chart is selected
     if (chartType == "line"):
         # Create line chart
@@ -215,7 +209,6 @@ def buildChart(user_symbol, chartType, data, timeSeries, startDate, endDate):
         # Error message
         print("ERROR")
 
-
 # Function to get data from the API
 def queryAPI(functionType, symbol, outputSize, key):
     # URL construction for API request
@@ -238,10 +231,12 @@ while (run == True):
     # Variable for invalid selection input text
     invalidInputText = "Invalid option! Enter the number of the option you want to select: "
     invalidInputDatesFormat = "Invalid date! Enter the date in YYYY-MM-DD format:  "
+    
     # Variables for output size and API key parameters
     outputSize = "full"
     key = "DLEZPCELNFARX2UF"
 
+    # Print menu
     print("\nStock Data Visualizer")
     print("----------------------")
 
@@ -277,12 +272,10 @@ while (run == True):
     buildChart(user_symbol, chartOption, data, jTime, startTime, endTime)
     
     # Check if the user would like to visualize another stock
-    user_continue = input("Would you like to view more stock data? Press 'y' to continue: ")
+    user_continue = input("Would you like to view more stock data?\n Press 'y' to continue: ")
     if (user_continue == "y"):
         # Repeat program by iterating through while loop again
         run = True
-        # Empty dictionary
-        dict = {}
     else:
         # End program
         run = False
